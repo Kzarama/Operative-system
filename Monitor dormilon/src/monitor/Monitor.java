@@ -1,37 +1,40 @@
 package monitor;
 
 import java.util.Queue;
+import java.util.Random;
 import java.util.concurrent.Semaphore;
 
 public class Monitor extends Thread {
 	
-	private Queue<Student> queueStudents;
-	private Semaphore semQueue;
-	private Semaphore semStudent;
-	private Semaphore semMonitor;
-	
-	public Monitor(Queue<Student> queueStudents, Semaphore semQueue, Semaphore semStudent, Semaphore semMonitor) {
+	private Queue<Student> colaEstudiantes;
+	private Random aleatorio;
+	private Semaphore sCola;
+	private Semaphore sEstudiante;
+	private Semaphore sMonitor;
+
+	public Monitor(Queue<Student> colaEstudiantes, Semaphore sCola, long semilla, Semaphore sMonitor, Semaphore sEstudiante) {
 		super();
-		this.queueStudents = queueStudents;
-		this.semQueue = semQueue;
-		this.semStudent = semStudent;
-		this.semMonitor = semMonitor;
+		this.sCola = sCola;
+		this.aleatorio = new Random(semilla);
+		this.sMonitor = sMonitor;
+		this.colaEstudiantes = colaEstudiantes;
+		this.sEstudiante = sEstudiante;
 	}
 	
 	public void run() {
 		while (true) {
 			try {
-				if(queueStudents.isEmpty()) {
+				if(colaEstudiantes.isEmpty()) {
 					System.out.println("- [Monitor] Bueno, no hay nadie, así que ¡A dormir!");
-					semStudent.release();
-					sleep((long) ((Math.random() + 1) *100));
+					sEstudiante.release();
+					sleep(Math.abs(aleatorio.nextInt()) % 1000);
 				}else {
-					System.out.println("- [Monitor] Que pase el "+queueStudents.peek().getName()+". Empieza la monitoría");
-					sleep((long) ((Math.random() + 1) *100));
-					semMonitor.acquire();
+					System.out.println("- [Monitor] Que pase el "+colaEstudiantes.peek().getNombre()+". Empieza la monitoría");
+					sleep(Math.abs(aleatorio.nextInt()) % 1000);
+					sMonitor.acquire();
 					System.out.println("- [Monitor] Terminé la monitoría");
-					semQueue.release();
-					queueStudents.poll();
+					sCola.release();
+					colaEstudiantes.poll();
 				}
 				
 			}catch(InterruptedException e) {
@@ -39,5 +42,4 @@ public class Monitor extends Thread {
 			}
 		}
 	}
-	
 }
